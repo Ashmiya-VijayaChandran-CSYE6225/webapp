@@ -54,7 +54,7 @@ public class UserController {
     public ResponseEntity<Object> updateUser(@RequestHeader("Authorization") String auth, @RequestBody User requestBody){
         if(userService.checkIsValidUser(auth)){
             if(userService.containsNecessaryFields(requestBody) && requestBody.getUsername() == null && requestBody.getAccountCreated() == null && requestBody.getAccountUpdated() == null){
-                UserDTO userDTO = userService.updateUser(auth, requestBody);
+                userService.updateUser(auth, requestBody);
                 return ResponseEntity
                         .status(HttpStatus.NO_CONTENT)
                         .cacheControl(CacheControl.noCache().mustRevalidate())
