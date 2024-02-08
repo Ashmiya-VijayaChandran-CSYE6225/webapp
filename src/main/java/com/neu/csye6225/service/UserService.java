@@ -69,6 +69,7 @@ public class UserService {
     }
     public UserDTO userToUserDTOMapper(User user){
         UserDTO userDTO = new UserDTO();
+        userDTO.setId(user.getId());
         userDTO.setUsername(user.getUsername());
         userDTO.setFirstName(user.getFirstName());
         userDTO.setLastName(user.getLastName());
