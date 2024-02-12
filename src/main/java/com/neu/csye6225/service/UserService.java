@@ -60,7 +60,7 @@ public class UserService {
    }
 
     public User getUserFromUserName(String userName) {
-        return userRepository.findByUsername(userName);
+        return userRepository.findByUsername(;
     }
 
     public String passwordEncoderBCrypt(String pass){
