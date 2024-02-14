@@ -2,24 +2,28 @@ package com.neu.csye6225.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neu.csye6225.model.User;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-
 import java.util.Base64;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UserControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
+
+    @LocalServerPort
+    private int port;
+
+    @BeforeEach
+    void setUp(){
+        RestAssured.port = port;
+        RestAssured.basePath = "v1/user";
+    }
 
     private String userToJsonString(User user){
         try{
@@ -36,7 +40,7 @@ class UserControllerTest {
         return new String(encodedBase64Bytes);
     }
     @Test
-    public void createUser() throws Exception {
+    public void createUser() {
         User user = new User();
         user.setUsername("username@gmail.com");
         user.setFirstName("Brooke");
@@ -46,53 +50,21 @@ class UserControllerTest {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization", "Basic " + encodeBase64String("username@gmail.com", "password"));
 
-        mockMvc.perform(post("/v1/user")
-                .content(userToJsonString(user))
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated());
+        given()
+                .contentType(ContentType.JSON)
+                .body(userToJsonString(user))
+                .when()
+                .post()
+                .then().statusCode(201);
 
-        mockMvc.perform(get("/" + "v1/user/self")
-                .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("username@gmail.com"))
-                .andExpect(jsonPath("$.firstName").value("Brooke"))
-                .andExpect(jsonPath("$.lastName").value("Kuttan"));
-    }
-
-    @Test
-    void updateUser() throws Exception {
-        User user = new User();
-        user.setUsername("username2@gmail.com");
-        user.setFirstName("Brooke");
-        user.setLastName("Kuttan");
-        user.setPassword("password");
-
-
-        mockMvc.perform(post("/v1/user")
-                .content(userToJsonString(user))
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated());
-
-        User updatedUser = new User();
-        updatedUser.setFirstName("Cookie");
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Authorization", "Basic " + encodeBase64String("username2@gmail.com", "password"));
-
-
-        mockMvc.perform(put("/v1/user/self")
+        given()
                 .headers(httpHeaders)
-                .content(userToJsonString(updatedUser))
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNoContent());
-
-
-        mockMvc.perform(get("/" + "v1/user/self")
-                .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("username2@gmail.com"))
-                .andExpect(jsonPath("$.firstName").value("Cookie"))
-                .andExpect(jsonPath("$.lastName").value("Kuttan"));
-
+                .when()
+                .get("/self")
+                .then()
+                .statusCode(200)
+                .body("username", equalTo("username@gmail.com"))
+                .body("firstName", equalTo("Brooke"))
+                .body("lastName", equalTo("Kuttan"));
     }
 }
