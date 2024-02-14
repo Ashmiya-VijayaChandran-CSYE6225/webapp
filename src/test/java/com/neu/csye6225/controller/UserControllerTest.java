@@ -58,4 +58,41 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.firstName").value("Brooke"))
                 .andExpect(jsonPath("$.lastName").value("Kuttan"));
     }
+
+    @Test
+    void updateUser() throws Exception {
+        User user = new User();
+        user.setUsername("username2@gmail.com");
+        user.setFirstName("Brooke");
+        user.setLastName("Kuttan");
+        user.setPassword("password");
+
+
+        mockMvc.perform(post("/v1/user")
+                .content(userToJsonString(user))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+
+        User updatedUser = new User();
+        updatedUser.setFirstName("Cookie");
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Authorization", "Basic " + encodeBase64String("username2@gmail.com", "password"));
+
+
+        mockMvc.perform(put("/v1/user/self")
+                .headers(httpHeaders)
+                .content(userToJsonString(updatedUser))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+
+        mockMvc.perform(get("/" + "v1/user/self")
+                .accept(MediaType.APPLICATION_JSON)
+                .headers(httpHeaders)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("username2@gmail.com"))
+                .andExpect(jsonPath("$.firstName").value("Cookie"))
+                .andExpect(jsonPath("$.lastName").value("Kuttan"));
+
+    }
 }
