@@ -67,4 +67,46 @@ class UserControllerTest {
                 .body("firstName", equalTo("Brooke"))
                 .body("lastName", equalTo("Kuttan"));
     }
+
+    @Test
+    void updateUser() {
+        User user = new User();
+        user.setUsername("username2@gmail.com");
+        user.setFirstName("Brooke");
+        user.setLastName("Kuttan");
+        user.setPassword("password");
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(userToJsonString(user))
+                .when()
+                .post()
+                .then()
+                .statusCode(201);
+
+        User updatedUser = new User();
+        updatedUser.setFirstName("Cookie");
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Authorization", "Basic " + encodeBase64String("username2@gmail.com", "password"));
+
+        given()
+                .headers(httpHeaders)
+                .contentType(ContentType.JSON)
+                .body(userToJsonString(updatedUser))
+                .when()
+                .put("/self")
+                .then()
+                .log().all()
+                .statusCode(204);
+
+        given()
+                .headers(httpHeaders)
+                .when()
+                .get("/self")
+                .then()
+                .statusCode(200)
+                .body("firstName", equalTo("Cookie"));
+
+    }
 }
