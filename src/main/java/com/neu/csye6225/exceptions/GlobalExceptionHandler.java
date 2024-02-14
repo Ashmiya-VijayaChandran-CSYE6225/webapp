@@ -33,4 +33,9 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<String> handleEmailViolationException() {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).headers(headers).build();
 	}
+
+	@ExceptionHandler(value = Exception.class)
+	public ResponseEntity<Object> handleBadRequestsException(Exception e){
+		   return ResponseEntity.status(HttpStatus.BAD_REQUEST).headers(headers).body(e.getMessage());
+	}
 }

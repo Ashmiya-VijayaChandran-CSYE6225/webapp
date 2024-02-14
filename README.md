@@ -1,4 +1,4 @@
-# Webapp testing
+# Webapp
 
 ## Description
 

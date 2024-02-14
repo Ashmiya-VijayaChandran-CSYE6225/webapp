@@ -98,7 +98,7 @@ public class UserService {
        String password = requestBodyUser.getPassword();
        String firstName = requestBodyUser.getFirstName();
        String lastName = requestBodyUser.getLastName();
-       if(userName == null || password == null || firstName == null || lastName == null){
+       if(userName.isBlank() || password.isBlank() || firstName.isBlank() || lastName.isBlank()){
            return false;
        }
        return true;
@@ -109,6 +109,9 @@ public class UserService {
        String firstName = requestBodyUser.getFirstName();
        String lastName = requestBodyUser.getLastName();
        if(password == null && firstName == null && lastName == null){
+           return false;
+       }
+       else if(password != null && password.isBlank() || firstName != null && firstName.isBlank() || lastName != null && lastName.isBlank()){
            return false;
        }
        return true;

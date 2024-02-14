@@ -35,14 +35,22 @@ public class UserController {
     }
 
     @GetMapping("/self")
-    public ResponseEntity<Object> getUser(@RequestHeader("Authorization") String auth) {
+    public ResponseEntity<Object> getUser(@RequestHeader("Authorization") String auth, @RequestBody(required = false) String requestBody) {
         if(userService.checkIsValidUser(auth)){
-            User loggedInUser = userService.getUser(auth);
-            UserDTO loggedInUserDTO = userService.userToUserDTOMapper(loggedInUser);
-            return ResponseEntity
-                    .ok()
-                    .cacheControl(CacheControl.noCache().mustRevalidate())
-                    .body(loggedInUserDTO);
+            if(requestBody == null) {
+                User loggedInUser = userService.getUser(auth);
+                UserDTO loggedInUserDTO = userService.userToUserDTOMapper(loggedInUser);
+                return ResponseEntity
+                        .ok()
+                        .cacheControl(CacheControl.noCache().mustRevalidate())
+                        .body(loggedInUserDTO);
+            }
+            else{
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .cacheControl(CacheControl.noCache().mustRevalidate())
+                        .build();
+            }
         }
         else return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
