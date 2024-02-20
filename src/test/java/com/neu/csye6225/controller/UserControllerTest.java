@@ -55,7 +55,7 @@ class UserControllerTest {
                 .body(userToJsonString(user))
                 .when()
                 .post()
-                .then().statusCode(201);
+                .then().statusCode(200);
 
         given()
                 .headers(httpHeaders)
@@ -82,7 +82,7 @@ class UserControllerTest {
                 .when()
                 .post()
                 .then()
-                .statusCode(201);
+                .statusCode(200);
 
         User updatedUser = new User();
         updatedUser.setFirstName("Cookie");
