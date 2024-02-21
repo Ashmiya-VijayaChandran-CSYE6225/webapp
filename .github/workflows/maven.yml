@@ -17,7 +17,7 @@ jobs:
     name: Testing maven file
     runs-on: ubuntu-latest
     env:
-      DB_DATABASE: cloud
+      DB_DATABASE: ${{secrets.DATABASE_NAME}}
       DATABASE_USERNAME: ${{secrets.DATABASE_USERNAME}}
       DATABASE_PASSWORD: ${{secrets.DATABASE_PASSWORD}}
       DATABASE_URL: ${{secrets.DATABASE_URL}}
