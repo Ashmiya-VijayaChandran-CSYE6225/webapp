@@ -37,3 +37,21 @@ source "googlecompute" "centos8_image" {
   #  use_internal_ip   = false
   #  communicator      = "ssh"
 }
+
+build {
+  sources = ["source.googlecompute.centos8_image"]
+
+  provisioner "shell" {
+    script = "script/installation.sh"
+  }
+  provisioner "shell" {
+    script = "script/user.sh"
+  }
+  provisioner "file" {
+    source      = "../target/webapp-1.0-SNAPSHOT.jar"
+    destination = "/tmp/webapp-1.0-SNAPSHOT.jar"
+  }
+  provisioner "shell" {
+    script = "script/chown.sh"
+  }
+}
