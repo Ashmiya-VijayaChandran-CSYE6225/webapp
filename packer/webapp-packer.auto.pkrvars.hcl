@@ -1,8 +1,0 @@
-project_id               = "csye6225-dev-123"
-source_image_family      = "centos-stream-8"
-custom_image_zone        = "us-east1-c"
-ssh_username             = "packer"
-custom_image_network     = "default"
-custom_image_name        = "centos-custom-image-google"
-custom_image_description = "custom-image-description"
-service_account_email    = "csye6225-packer@csye6225-dev-123.iam.gserviceaccount.com"
