@@ -1,12 +1,13 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 #Install Java 
 sudo dnf install java-17-openjdk-devel.x86_64 -y
 
 #Install mySQL
-sudo dnf install mysql-server -y
+sudo dnf install mysql mysql-server -y
 
 #Start mySQL
+sudo systemctl enable mysqld
 sudo systemctl start mysqld
 
 #Alter Password of mySQL
