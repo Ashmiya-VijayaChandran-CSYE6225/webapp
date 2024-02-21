@@ -32,8 +32,8 @@ source "googlecompute" "centos8_image" {
   ssh_username        = "packer"
   #  private_key_file  = var.private_key_file
   image_description     = "custom-image-description"
-  credentials_json      = var.credentials_json
-  service_account_email = var.service_account_email
+  credentials_json      = "${var.credentials_json}"
+  service_account_email = "${var.service_account_email}"
   #  use_internal_ip   = false
   #  communicator      = "ssh"
 }
