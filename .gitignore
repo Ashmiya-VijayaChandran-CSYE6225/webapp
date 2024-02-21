@@ -70,4 +70,4 @@ secrets.yml
 /.idea
 
 #pkrvars
-*.pkrvars
+*.pkrvars.hcl
