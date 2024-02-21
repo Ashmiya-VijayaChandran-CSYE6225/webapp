@@ -54,15 +54,4 @@ build {
   provisioner "shell" {
     script = "script/chown.sh"
   }
-
-  post-processor "googlecompute-export" {
-    // googlecompute {
-    type          = "googlecompute"
-    project_id    = "csye6225-dev-123"
-    image_name    = "exported-centos-custom-image-google"
-    source_image  = "centos-stream-8"
-    zone          = "us-central1-a"
-    image_family  = "exported-centos-stream-8"
-    json_key_file = "C:/Users/ashmi/Documents/CSYE6225/csye6225-dev-123-95776d3a0733.json"
-  }
 }
