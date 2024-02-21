@@ -35,7 +35,7 @@ jobs:
     needs: build
     env:
       SERVICE_ACCOUNT_JSON: ${{secrets.CREDENTIALS_JSON}}
-      project_id: ${{secrets.PROJECT_ID}}
+      PROJECT_ID: ${{secrets.PROJECT_ID}}
       SERVICE_ACCOUNT_EMAIL: ${{secrets.SERVICE_ACCOUNT_EMAIL}}
     steps:
       - name: Checkout code
@@ -60,10 +60,10 @@ jobs:
 
       - name: Packer Validate
         working-directory: ./packer
-        run: packer validate -var 'credentials_json={{env "CREDENTIALS_JSON"}}' -var 'project_id={{env "PROJECT_ID"}}' -var 'service_account_email={{env "SERVICE_ACCOUNT_EMAIL"}}' centos_custom_image_google.pkr.hcl
+        run: packer validate -var 'credentials_json=$SERVICE_ACCOUNT_JSON' -var 'project_id=$PROJECT_ID' -var 'service_account_email=$SERVICE_ACCOUNT_EMAIL' centos_custom_image_google.pkr.hcl
 
       - name: Build image
-        run: packer build -var 'credentials_json={{env "CREDENTIALS_JSON"}}' -var 'project_id={{env "PROJECT_ID"}}' -var 'service_account_email={{env "SERVICE_ACCOUNT_EMAIL"}}' ./packer/centos_custom_image_google.pkr.hcl
+        run: packer build -var 'credentials_json=$SERVICE_ACCOUNT_JSON' -var 'project_id=$PROJECT_ID' -var 'service_account_email=$SERVICE_ACCOUNT_EMAIL' ./packer/centos_custom_image_google.pkr.hcl
         env: 
           name: Building custom image with Packer
           runs-on: ubuntu-latest
