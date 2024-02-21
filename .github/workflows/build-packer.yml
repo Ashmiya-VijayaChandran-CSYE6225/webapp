@@ -49,7 +49,7 @@ jobs:
         run: packer init packer/centos_custom_image_google.pkr.hcl
 
       - name: Build image
-        run: packer build -var-file=./packer/variables.pkrvars ./packer/centos_custom_image_google.pkr.hcl
+        run: packer build -var-file=./packer/variables.pkrvars.hcl ./packer/centos_custom_image_google.pkr.hcl
         env: 
           name: Building custom image with Packer
           runs-on: ubuntu-latest
