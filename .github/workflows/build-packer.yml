@@ -49,7 +49,7 @@ jobs:
         run: packer init packer/custom-image.pkr.hcl
 
       - name: Build image
-        run: packer build -var 'credentials_json={{env "SERVICE_ACCOUNT_JSON"}}' -var 'project_id={{env "PROJECT_ID"}}' -var 'service_account_email={{env "GCP_SERVICE_ACCOUNT_EMAIL"}}'  ./packer/custom-image.pkr.hcl
+        run: packer build -var 'credentials_json={{env "CREDENTIALS_JSON"}}' -var 'project_id={{env "PROJECT_ID"}}' -var 'service_account_email={{env "SERVICE_ACCOUNT_EMAIL"}}'  ./packer/custom-image.pkr.hcl
         env: 
           name: Building custom image with Packer
           runs-on: ubuntu-latest
