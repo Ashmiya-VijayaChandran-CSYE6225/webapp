@@ -5,7 +5,6 @@ sudo dnf install java-17-openjdk-devel.x86_64 -y
 
 #Install mySQL
 sudo dnf install mysql mysql-server -y
-
 sleep 5
 
 #Start mySQL
