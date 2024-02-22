@@ -10,8 +10,6 @@ sleep 5
 
 #Start mySQL
 sudo systemctl enable mysqld
-
-sleep 5
 sudo systemctl start mysqld
 
 sleep 5
