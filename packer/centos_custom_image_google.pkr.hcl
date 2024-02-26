@@ -22,7 +22,7 @@ build {
   sources = ["source.googlecompute.centos8_image"]
 
   provisioner "shell" {
-    script = "script/installation.sh"
+      script = "script/installation.sh"
   }
   provisioner "shell" {
     script = "script/user.sh"
