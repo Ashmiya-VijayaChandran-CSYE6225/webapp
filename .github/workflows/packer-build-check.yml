@@ -57,7 +57,7 @@ jobs:
 
       - name: Packer Fmt
         working-directory: ./packer
-        run: packer fmt .
+        run: packer fmt -check .
 
       - name: Packer Validate
         working-directory: ./packer
