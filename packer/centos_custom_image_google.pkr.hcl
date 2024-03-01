@@ -38,10 +38,6 @@ build {
     source      = "../target/webapp-1.0-SNAPSHOT.jar"
     destination = "/tmp/webapp-1.0-SNAPSHOT.jar"
   }
-  provisioner "file" {
-    source      = "../.env"
-    destination = "/tmp/"
-  }
   provisioner "shell" {
     script = "script/chown.sh"
   }

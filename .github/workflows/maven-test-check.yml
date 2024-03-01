@@ -24,5 +24,6 @@ jobs:
       - name: Start MySQL
         run: |
           sudo /etc/init.d/mysql start
+          mysql -h localhost -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE;" -u$DATABASE_USERNAME -p$DATABASE_PASSWORD
       - name: Run User Integration Tests
         run: mvn test --file pom.xml
