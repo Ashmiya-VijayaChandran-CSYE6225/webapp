@@ -1,8 +1,11 @@
 package com.neu.csye6225.service;
 
+import com.neu.csye6225.controller.ConnectionCheckerController;
 import com.neu.csye6225.model.User;
 import com.neu.csye6225.model.UserDTO;
 import com.neu.csye6225.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -98,7 +101,9 @@ public class UserService {
        String password = requestBodyUser.getPassword();
        String firstName = requestBodyUser.getFirstName();
        String lastName = requestBodyUser.getLastName();
+       final Logger logger = LoggerFactory.getLogger(UserService.class);
        if(userName.isBlank() || password.isBlank() || firstName.isBlank() || lastName.isBlank()){
+           logger.warn("Password, First Name, Last Name must not be blank.");
            return false;
        }
        return true;
@@ -108,10 +113,13 @@ public class UserService {
        String password = requestBodyUser.getPassword();
        String firstName = requestBodyUser.getFirstName();
        String lastName = requestBodyUser.getLastName();
+       final Logger logger = LoggerFactory.getLogger(UserService.class);
        if(password == null && firstName == null && lastName == null){
+           logger.warn("Password, First Name, Last Name must not be null.");
            return false;
        }
        else if(password != null && password.isBlank() || firstName != null && firstName.isBlank() || lastName != null && lastName.isBlank()){
+           logger.warn("Password, First Name, Last Name must not be blank.");
            return false;
        }
        return true;
