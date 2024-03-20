@@ -41,4 +41,7 @@ build {
   provisioner "shell" {
     script = "script/chown.sh"
   }
+  provisioner "shell" {
+    script = "script/install_ops.sh"
+  }
 }
