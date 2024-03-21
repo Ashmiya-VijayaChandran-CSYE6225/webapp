@@ -22,9 +22,9 @@ logging:
       time_format: "%Y-%m-%dT%H:%M:%S.%L%Z"
     move_severity:
       type: modify_fields
-        fields:
-          severity:
-            move_from: jsonPayload.Level
+      fields:
+       severity:
+        move_from: jsonPayload.Level
   service:
     pipelines:
       default_pipeline:
