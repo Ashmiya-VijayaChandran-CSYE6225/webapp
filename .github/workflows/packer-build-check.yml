@@ -35,6 +35,9 @@ jobs:
       - name: Start MySQL
         run: |
           sudo /etc/init.d/mysql start
+      - name: Log Directory
+        run: |
+          sudo chmod -R 733 /var/log
       - name: Build with Maven
         run: mvn -B package --file pom.xml
 

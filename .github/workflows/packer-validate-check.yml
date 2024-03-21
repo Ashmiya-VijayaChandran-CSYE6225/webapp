@@ -32,6 +32,9 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+      - name: Log Directory
+        run: |
+          sudo chmod -R 733 /var/log
 
       - name: Build with Maven
         run: mvn -B package -DskipTests=true --file pom.xml    

@@ -25,5 +25,8 @@ jobs:
         run: |
           sudo /etc/init.d/mysql start
           mysql -h localhost -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE;" -u$DATABASE_USERNAME -p$DATABASE_PASSWORD
+      - name: Log Directory
+        run: |
+          sudo chmod -R 733 /var/log
       - name: Run User Integration Tests
         run: mvn test --file pom.xml
