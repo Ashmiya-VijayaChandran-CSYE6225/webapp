@@ -28,5 +28,9 @@ jobs:
       - name: Log Directory
         run: |
           sudo chmod -R 733 /var/log
+      - name: Google Cloud Platform Credentials
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{secrets.CREDENTIALS_JSON}}'
       - name: Run User Integration Tests
         run: mvn test --file pom.xml
