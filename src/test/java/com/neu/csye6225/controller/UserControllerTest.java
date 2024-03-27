@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neu.csye6225.model.User;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -50,12 +51,23 @@ class UserControllerTest {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization", "Basic " + encodeBase64String("username@gmail.com", "password"));
 
-        given()
+        ValidatableResponse validatableResponse = given()
                 .contentType(ContentType.JSON)
                 .body(userToJsonString(user))
                 .when()
                 .post()
                 .then().statusCode(201);
+
+        String token = validatableResponse.extract().path("id");
+
+        given()
+                .param("username", "username@gmail.com")
+                .param("token", token)
+                .log().all()
+                .when()
+                .get("/verify-email")
+                .then()
+                .log().all().assertThat().statusCode(200);
 
         given()
                 .headers(httpHeaders)
@@ -76,13 +88,24 @@ class UserControllerTest {
         user.setLastName("Kuttan");
         user.setPassword("password");
 
-        given()
+        ValidatableResponse validatableResponse = given()
                 .contentType(ContentType.JSON)
                 .body(userToJsonString(user))
                 .when()
                 .post()
                 .then()
                 .statusCode(201);
+
+        String token = validatableResponse.extract().path("id");
+
+        given()
+                .param("username", "username2@gmail.com")
+                .param("token", token)
+                .log().all()
+                .when()
+                .get("/verify-email")
+                .then()
+                .log().all().assertThat().statusCode(200);
 
         User updatedUser = new User();
         updatedUser.setFirstName("Cookie");

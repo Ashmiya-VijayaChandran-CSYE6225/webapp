@@ -45,4 +45,12 @@ public class User {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "account_updated", nullable = false)
     private Date accountUpdated;
+
+    @Column(name = "is_verified", nullable = false)
+    private boolean isVerified;
+
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "email_verify_sent_time", nullable = false, updatable = false)
+    private Date emailVerifySentTime;
 }

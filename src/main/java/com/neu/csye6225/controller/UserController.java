@@ -10,6 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
 @RestController
 @RequestMapping("v1/user")
 public class UserController {
@@ -21,7 +27,7 @@ public class UserController {
     }
 
     @PostMapping()
-    public ResponseEntity<Object> createUser(@RequestHeader(value = "Authorization", required = false) String auth, @RequestBody User requestBody) {
+    public ResponseEntity<Object> createUser(@RequestHeader(value = "Authorization", required = false) String auth, @RequestBody User requestBody) throws IOException, ExecutionException, InterruptedException, SQLException {
         final Logger logger = LoggerFactory.getLogger(UserController.class);
         if(auth == null && (requestBody.getUsername() != null && userService.getUserFromUserName(requestBody.getUsername()) == null) && userService.checkIfValidRequestBody(requestBody)) {
             User createdUser = userService.createUser(requestBody);
@@ -44,25 +50,24 @@ public class UserController {
     @GetMapping("/self")
     public ResponseEntity<Object> getUser(@RequestHeader("Authorization") String auth, @RequestBody(required = false) String requestBody) {
         final Logger logger = LoggerFactory.getLogger(UserController.class);
-        if(userService.checkIsValidUser(auth)){
-            if(requestBody == null) {
-                User loggedInUser = userService.getUser(auth);
-                UserDTO loggedInUserDTO = userService.userToUserDTOMapper(loggedInUser);
-                logger.debug("User Details to be returned:"+loggedInUserDTO);
-                logger.info("Get Request for User - successful!");
-                return ResponseEntity
-                        .ok()
-                        .cacheControl(CacheControl.noCache().mustRevalidate())
-                        .body(loggedInUserDTO);
-            }
-            else{
-                logger.warn("Request Body shouldn't be provided");
-                logger.error("Request Failed as body is provided");
-                return ResponseEntity
-                        .status(HttpStatus.BAD_REQUEST)
-                        .cacheControl(CacheControl.noCache().mustRevalidate())
-                        .build();
-            }
+        User loggedInUser = userService.getUser(auth);
+        UserDTO loggedInUserDTO = userService.userToUserDTOMapper(loggedInUser);
+        if(userService.checkIsValidUser(auth) && loggedInUser.isVerified()) {
+                if (requestBody == null) {
+                    logger.debug("User Details to be returned:" + loggedInUserDTO);
+                    logger.info("Get Request for User - successful!");
+                    return ResponseEntity
+                            .ok()
+                            .cacheControl(CacheControl.noCache().mustRevalidate())
+                            .body(loggedInUserDTO);
+                } else {
+                    logger.warn("Request Body shouldn't be provided");
+                    logger.error("Request Failed as body is provided");
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .cacheControl(CacheControl.noCache().mustRevalidate())
+                            .build();
+                }
         }
         else {
             logger.error("Request failed due to Unauthorized User.");
@@ -76,8 +81,10 @@ public class UserController {
     @PutMapping("/self")
     public ResponseEntity<Object> updateUser(@RequestHeader("Authorization") String auth, @RequestBody User requestBody){
         final Logger logger = LoggerFactory.getLogger(UserController.class);
-        if(userService.checkIsValidUser(auth)){
-            if(userService.containsNecessaryFields(requestBody) && requestBody.getUsername() == null && requestBody.getAccountCreated() == null && requestBody.getAccountUpdated() == null){
+        User loggedInUser = userService.getUser(auth);
+        if(userService.checkIsValidUser(auth)  && loggedInUser.isVerified()){
+            if(userService.containsNecessaryFields(requestBody) && requestBody.getUsername() == null && requestBody.getAccountCreated() == null
+                    && requestBody.getAccountUpdated() == null && requestBody.getEmailVerifySentTime() == null && !requestBody.isVerified()){
                 userService.updateUser(auth, requestBody);
                 logger.info("Put Request for User - successful!");
                 return ResponseEntity
@@ -86,7 +93,7 @@ public class UserController {
                         .build();
             }
             else{
-                logger.warn("Fields like username, created date, updated date cannot be updated.");
+                logger.warn("Fields like username, created date, updated date, isVerified, EmailVerifySentTime cannot be updated.");
                 logger.error("Request Failed as the request body is incorrect.");
                 return ResponseEntity
                         .status(HttpStatus.BAD_REQUEST)
@@ -101,5 +108,22 @@ public class UserController {
                     .cacheControl(CacheControl.noCache().mustRevalidate())
                     .build();
         }
+    }
+    @GetMapping("/verify-email")
+    public ResponseEntity<Object> verifyNewUser(@RequestParam Map<String, String> queryParameter, @RequestBody(required = false) String payload) {
+        final Logger logger = LoggerFactory.getLogger(UserController.class);
+        logger.debug("Verify Email: "+ payload);
+        if (null != payload && !payload.isEmpty()) {
+            logger.error("Payload should not be given");
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .cacheControl(CacheControl.noCache().mustRevalidate())
+                    .build();
+        }
+        String message = userService.verifyUser(queryParameter);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .cacheControl(CacheControl.noCache().mustRevalidate())
+                .body(Collections.singletonMap("UserEmailVerificationStatus", message));
     }
 }

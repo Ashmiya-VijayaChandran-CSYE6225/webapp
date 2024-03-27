@@ -7,26 +7,45 @@ import com.neu.csye6225.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Base64;
+import com.google.api.core.ApiFuture;
+import com.google.cloud.pubsub.v1.Publisher;
+import com.google.protobuf.ByteString;
+import com.google.pubsub.v1.PubsubMessage;
+import com.google.pubsub.v1.TopicName;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
     BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-
     @Autowired
     public UserService(UserRepository userRepository) {
+
         this.userRepository = userRepository;
     }
 
-    public User createUser(User user){
+    public User createUser(User user) throws IOException, ExecutionException, InterruptedException, SQLException {
         String pass = passwordEncoderBCrypt(user.getPassword());
         user.setPassword(pass);
-        return userRepository.save(user);
+        User createdUser =  userRepository.save(user);
+        publisherExample(createdUser.getUsername()+":"+createdUser.getId());
+        return createdUser;
    }
     public String[] decodeBase64String(String s){
         byte[] decodedBase64Bytes = Base64.getDecoder().decode(s);
@@ -106,6 +125,10 @@ public class UserService {
            logger.warn("Password, First Name, Last Name must not be blank.");
            return false;
        }
+       if(requestBodyUser.getAccountCreated() != null || requestBodyUser.getAccountUpdated() != null || requestBodyUser.getEmailVerifySentTime() != null
+       || requestBodyUser.isVerified()) {
+           return false;
+       }
        return true;
    }
 
@@ -124,4 +147,76 @@ public class UserService {
        }
        return true;
    }
+
+// public class PublisherExample {
+//   public static void main(String... args) throws Exception {
+    // TODO(developer): Replace these variables before running the sample.
+    // String projectId = "csye6225-dev-123";
+    // String topicId = "verify-email";
+
+    // publisherExample(projectId, topicId);
+//   }
+    public String verifyUser(Map<String, String> queryParameter) {
+        final Logger logger = LoggerFactory.getLogger(UserService.class);
+        if (queryParameter.containsKey("username") && queryParameter.containsKey("token")) {
+            String username = queryParameter.get("username");
+            String token = queryParameter.get("token");
+            User requestedUser = userRepository.findByUsername(username);
+            if(requestedUser.isVerified()){
+                logger.info("User already verified:"+username);
+                return "User already verified";
+            }
+            else if(token.equals(requestedUser.getId())){
+                Instant instantVerificationTime = requestedUser.getEmailVerifySentTime().toInstant();
+                logger.info("instant(now) time: "+Instant.now()+"for user:"+requestedUser.getUsername());
+                logger.info("database time: "+instantVerificationTime);
+                Duration duration = Duration.between(instantVerificationTime, Instant.now());
+                if(duration.toSeconds() < 120) {
+                    requestedUser.setVerified(true);
+                    userRepository.save(requestedUser);
+                    return "User Email is Verified";
+                } else{
+                    return "Sorry, link has expired";
+                }
+            } else{
+                requestedUser.setVerified(false);
+                userRepository.save(requestedUser);
+                logger.error("The given token is incorrect. Current given token: "+token+", Actual token: "+requestedUser.getId()+"for user: "+username);
+                return "User is not Verified";
+            }
+        } else {
+            logger.error("Username/Token is missing");
+            return "User is not Verified";
+        }
+    }
+  public static void publisherExample(String token)
+      throws IOException, ExecutionException, InterruptedException {
+      String projectId = "csye6225-dev-123";
+      String topicId = "verify-email";
+    TopicName topicName = TopicName.of(projectId, topicId);
+      final Logger logger = LoggerFactory.getLogger(UserService.class);
+
+    Publisher publisher = null;
+    try {
+      // Create a publisher instance with default settings bound to the topic
+      publisher = Publisher.newBuilder(topicName).build();
+
+      ByteString data = ByteString.copyFromUtf8(token);
+      PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
+
+      // Once published, returns a server-assigned message id (unique within the topic)
+      ApiFuture<String> messageIdFuture = publisher.publish(pubsubMessage);
+      String messageId = messageIdFuture.get();
+      System.out.println("Published message ID: " + messageId);
+    } catch(Exception e){
+        logger.error("Error thrown while publishing:" + e);
+    }
+    finally {
+      if (publisher != null) {
+        // When finished with the publisher, shutdown to free up resources.
+        publisher.shutdown();
+        publisher.awaitTermination(1, TimeUnit.MINUTES);
+      }
+    }
+  }
 }
