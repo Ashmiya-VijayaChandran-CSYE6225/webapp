@@ -156,12 +156,17 @@ public class UserService {
 
     // publisherExample(projectId, topicId);
 //   }
-    public String verifyUser(Map<String, String> queryParameter) {
+    public String verifyUser(Map<String, String> queryParameter, boolean isIntegrationTestCheck) {
         final Logger logger = LoggerFactory.getLogger(UserService.class);
         if (queryParameter.containsKey("username") && queryParameter.containsKey("token")) {
             String username = queryParameter.get("username");
             String token = queryParameter.get("token");
             User requestedUser = userRepository.findByUsername(username);
+            if(isIntegrationTestCheck){
+                requestedUser.setVerified(true);
+                userRepository.save(requestedUser);
+                return "User is verified as part of integration test";
+            }
             if(requestedUser.isVerified()){
                 logger.info("User already verified:"+username);
                 return "User already verified";

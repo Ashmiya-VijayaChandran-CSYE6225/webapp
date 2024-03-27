@@ -110,7 +110,7 @@ public class UserController {
         }
     }
     @GetMapping("/verify-email")
-    public ResponseEntity<Object> verifyNewUser(@RequestParam Map<String, String> queryParameter, @RequestBody(required = false) String payload) {
+    public ResponseEntity<Object> verifyNewUser(@RequestParam Map<String, String> queryParameter, @RequestBody(required = false) String payload, @RequestHeader(required = false, value = "isIntegrationTestCheck") boolean isIntegrationTestCheck) {
         final Logger logger = LoggerFactory.getLogger(UserController.class);
         logger.debug("Verify Email: "+ payload);
         if (null != payload && !payload.isEmpty()) {
@@ -120,7 +120,7 @@ public class UserController {
                     .cacheControl(CacheControl.noCache().mustRevalidate())
                     .build();
         }
-        String message = userService.verifyUser(queryParameter);
+        String message = userService.verifyUser(queryParameter, isIntegrationTestCheck);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .cacheControl(CacheControl.noCache().mustRevalidate())

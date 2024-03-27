@@ -49,8 +49,6 @@ public class User {
     @Column(name = "is_verified", nullable = false)
     private boolean isVerified;
 
-    @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "email_verify_sent_time", nullable = false, updatable = false)
+    @Column(name = "email_verify_sent_time")
     private Date emailVerifySentTime;
 }
