@@ -49,6 +49,10 @@ public class User {
     @Column(name = "is_verified", nullable = false)
     private boolean isVerified;
 
-    @Column(name = "email_verify_sent_time")
-    private Date emailVerifySentTime;
+    @Column(name = "email_verify_expiry_time")
+    private Date emailVerifyExpiryTime;
+
+    @Column(name = "token")
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String token;
 }

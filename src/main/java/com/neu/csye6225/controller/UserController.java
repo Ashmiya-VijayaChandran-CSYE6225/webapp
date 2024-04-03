@@ -69,6 +69,13 @@ public class UserController {
                             .build();
                 }
         }
+        else if(!loggedInUser.isVerified()){
+            logger.error("Request failed due to Forbidden User.");
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .cacheControl(CacheControl.noCache().mustRevalidate())
+                    .build();
+        }
         else {
             logger.error("Request failed due to Unauthorized User.");
             return ResponseEntity
@@ -84,7 +91,7 @@ public class UserController {
         User loggedInUser = userService.getUser(auth);
         if(userService.checkIsValidUser(auth)  && loggedInUser.isVerified()){
             if(userService.containsNecessaryFields(requestBody) && requestBody.getUsername() == null && requestBody.getAccountCreated() == null
-                    && requestBody.getAccountUpdated() == null && requestBody.getEmailVerifySentTime() == null && !requestBody.isVerified()){
+                    && requestBody.getAccountUpdated() == null && requestBody.getEmailVerifyExpiryTime() == null && !requestBody.isVerified()){
                 userService.updateUser(auth, requestBody);
                 logger.info("Put Request for User - successful!");
                 return ResponseEntity
@@ -100,6 +107,13 @@ public class UserController {
                         .cacheControl(CacheControl.noCache().mustRevalidate())
                         .build();
             }
+        }
+        else if(!loggedInUser.isVerified()){
+            logger.error("Request failed due to Forbidden User.");
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .cacheControl(CacheControl.noCache().mustRevalidate())
+                    .build();
         }
         else {
             logger.error("Request failed due to Unauthorized User.");

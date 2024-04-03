@@ -1,4 +1,5 @@
 package com.neu.csye6225.service;
+import java.sql.Connection;
 import java.sql.SQLException;
 
 import javax.sql.DataSource;
@@ -20,8 +21,7 @@ public class ConnectionCheckerService {
 	
 	public void checkDatabaseConnection() {
 		final Logger logger = LoggerFactory.getLogger(ConnectionCheckerService.class);
-		try {
-			dataSource.getConnection();
+		try(Connection connection = dataSource.getConnection()) {
 			logger.debug("Health Check Connection Successful!!");
 			System.out.println("Health Check Connection Successful!!");
 		} catch (SQLException e) {

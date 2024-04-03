@@ -1,19 +1,14 @@
 package com.neu.csye6225.service;
 
-import com.neu.csye6225.controller.ConnectionCheckerController;
 import com.neu.csye6225.model.User;
 import com.neu.csye6225.model.UserDTO;
 import com.neu.csye6225.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
@@ -25,7 +20,7 @@ import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.TopicName;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -43,8 +38,9 @@ public class UserService {
     public User createUser(User user) throws IOException, ExecutionException, InterruptedException, SQLException {
         String pass = passwordEncoderBCrypt(user.getPassword());
         user.setPassword(pass);
+        user.setToken(UUID.randomUUID().toString());
         User createdUser =  userRepository.save(user);
-        publisherExample(createdUser.getUsername()+":"+createdUser.getId());
+        publisherExample(createdUser.getUsername()+":"+createdUser.getToken());
         return createdUser;
    }
     public String[] decodeBase64String(String s){
@@ -125,7 +121,7 @@ public class UserService {
            logger.warn("Password, First Name, Last Name must not be blank.");
            return false;
        }
-       if(requestBodyUser.getAccountCreated() != null || requestBodyUser.getAccountUpdated() != null || requestBodyUser.getEmailVerifySentTime() != null
+       if(requestBodyUser.getAccountCreated() != null || requestBodyUser.getAccountUpdated() != null || requestBodyUser.getEmailVerifyExpiryTime() != null
        || requestBodyUser.isVerified()) {
            return false;
        }
@@ -172,11 +168,11 @@ public class UserService {
                 return "User already verified";
             }
             else if(token.equals(requestedUser.getId())){
-                Instant instantVerificationTime = requestedUser.getEmailVerifySentTime().toInstant();
+                Instant instantVerificationTime = requestedUser.getEmailVerifyExpiryTime().toInstant();
                 logger.info("instant(now) time: "+Instant.now()+"for user:"+requestedUser.getUsername());
                 logger.info("database time: "+instantVerificationTime);
                 Duration duration = Duration.between(instantVerificationTime, Instant.now());
-                if(duration.toSeconds() < 120) {
+                if(duration.toSeconds() < 0) {
                     requestedUser.setVerified(true);
                     userRepository.save(requestedUser);
                     return "User Email is Verified";
