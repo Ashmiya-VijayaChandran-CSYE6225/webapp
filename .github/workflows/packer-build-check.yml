@@ -70,11 +70,11 @@ jobs:
           gcloud compute instance-templates create instance-template-1 \
             --machine-type n2-standard-2 \
             --instance-template-region=us-east1 \
-            --create-disk=image=projects/csye6225-dev-123/global/images/centos-custom-image-google-1712749482,size=100,type=pd-balanced,auto-delete=yes \
+            --create-disk=image=projects/csye6225-dev-123/global/images/centos-custom-image-google-1712749482,size=100,type=pd-balanced,auto-delete=yes,boot=true \
             --network=projects/csye6225-dev-123/global/networks/vpc-network \
             --subnet=projects/csye6225-dev-123/regions/us-east1/subnetworks/webapp \
             --metadata startup-script="echo 'DATABASE_URL=${{steps.secrets.outputs.DATABASE_URL}}' > .env && echo 'DATABASE_USERNAME=${{steps.secrets.outputs.DATABASE_USERNAME}}' >> .env && echo 'DATABASE_PASSWORD=${{steps.secrets.outputs.DATABASE_PASSWORD}}' >> .env && sudo mv .env /opt/ && sudo chown csye6225:csye6225 /opt/.env && sudo setenforce 0 && sudo systemctl daemon-reload && sudo systemctl restart start-webapp.service" \
-            --service-account csye6225-packer@csye6225-dev-123.iam.gserviceaccount.com \
+            --service-account=csye6225-packer@csye6225-dev-123.iam.gserviceaccount.com \
             --tags=vm-instance
 
       - name: Set Instance Template
