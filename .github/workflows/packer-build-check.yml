@@ -90,12 +90,12 @@ jobs:
         run: | 
           gcloud compute instance-groups managed set-instance-template \
             ${{vars.BASE_PATH_IGM}} \
-            --${{vars.BASE_PATH_INSTANCE_TEMPLATE}}-${{vars.RANDOM_SUFFIX}}
+            --${{vars.BASE_PATH_INSTANCE_TEMPLATE}}-${{env.RANDOM_SUFFIX}}
       
       - name: Apply instance template to the managed instance group
         run: |
           gcloud compute instance-groups managed rolling-action start-update ${{vars.BASE_PATH_IGM}} --type=${{vars.ROLLING_ACTION_UPDATE_TYPE}} \
-            --version=template=${{vars.BASE_PATH_INSTANCE_TEMPLATE}}-${{vars.RANDOM_SUFFIX}}
+            --version=template=${{vars.BASE_PATH_INSTANCE_TEMPLATE}}-${{env.RANDOM_SUFFIX}}
     
       - name: Verify version target reached
         run: |
