@@ -55,8 +55,9 @@ class UserControllerTest {
                 .contentType(ContentType.JSON)
                 .body(userToJsonString(user))
                 .when()
+                .log().all()
                 .post()
-                .then().statusCode(201);
+                .then().log().all().statusCode(201);
 
         String token = validatableResponse.extract().path("id");
 

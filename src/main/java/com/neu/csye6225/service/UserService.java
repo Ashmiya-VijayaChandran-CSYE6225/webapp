@@ -6,6 +6,7 @@ import com.neu.csye6225.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.nio.charset.StandardCharsets;
@@ -28,13 +29,15 @@ import java.util.concurrent.TimeUnit;
 public class UserService {
 
     private final UserRepository userRepository;
-    private static final String GOOGLE_PROJECT_ID = System.getenv("GOOGLE_PROJECT_ID");
-    private static final String PUB_SUB_TOPIC_ID = System.getenv("PUB_SUB_TOPIC_ID");
+    private final Environment environment;
+//    private static final String GOOGLE_PROJECT_ID = System.getenv("GOOGLE_PROJECT_ID");
+//    private static final String PUB_SUB_TOPIC_ID = System.getenv("PUB_SUB_TOPIC_ID");
     BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, Environment environment) {
 
         this.userRepository = userRepository;
+        this.environment = environment;
     }
 
     public User createUser(User user) throws IOException, ExecutionException, InterruptedException, SQLException {
@@ -192,9 +195,12 @@ public class UserService {
             return "User is not Verified";
         }
     }
-  public static void publisherExample(String token)
+  public void publisherExample(String token)
       throws IOException, ExecutionException, InterruptedException {
-    TopicName topicName = TopicName.of(GOOGLE_PROJECT_ID, PUB_SUB_TOPIC_ID);
+        String projectId = environment.getProperty("GOOGLE_PROJECT_ID");
+      String topicId = environment.getProperty("PUB_SUB_TOPIC_ID");
+//    TopicName topicName = TopicName.of(GOOGLE_PROJECT_ID, PUB_SUB_TOPIC_ID);
+      TopicName topicName = TopicName.of(projectId, topicId);
       final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     Publisher publisher = null;
