@@ -99,7 +99,8 @@ jobs:
       - name: Apply instance template to the managed instance group
         run: |
           gcloud compute instance-groups managed rolling-action start-update ${{vars.BASE_PATH_IGM}} --type=${{vars.ROLLING_ACTION_UPDATE_TYPE}} \
-            --version=template=${{vars.BASE_PATH_INSTANCE_TEMPLATE}}-${{env.RANDOM_SUFFIX}}
+          --max-unavailable=${{vars.MAX_UNAVAILABLE}} \
+          --version=template=${{vars.BASE_PATH_INSTANCE_TEMPLATE}}-${{env.RANDOM_SUFFIX}}
     
       - name: Verify version target reached
         run: |
