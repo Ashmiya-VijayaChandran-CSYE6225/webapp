@@ -28,6 +28,8 @@ import java.util.concurrent.TimeUnit;
 public class UserService {
 
     private final UserRepository userRepository;
+    private static final String GOOGLE_PROJECT_ID = System.getenv("GOOGLE_PROJECT_ID");
+    private static final String PUB_SUB_TOPIC_ID = System.getenv("PUB_SUB_TOPIC_ID");
     BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
     @Autowired
     public UserService(UserRepository userRepository) {
@@ -192,9 +194,7 @@ public class UserService {
     }
   public static void publisherExample(String token)
       throws IOException, ExecutionException, InterruptedException {
-      String projectId = "csye6225-dev-123";
-      String topicId = "verify-email";
-    TopicName topicName = TopicName.of(projectId, topicId);
+    TopicName topicName = TopicName.of(GOOGLE_PROJECT_ID, PUB_SUB_TOPIC_ID);
       final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     Publisher publisher = null;

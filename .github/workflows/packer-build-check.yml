@@ -55,7 +55,9 @@ jobs:
 
       - name: Packer Build
         working-directory: ./packer
-        run: "packer build ."
+        run: |
+          output=$(packer build .)
+          COMPUTE_IMAGE_NAME=$(echo $output | grep -Eo 'A disk image was created in the .+ project: .+' | sed -E 's/A disk image was created in the .+ project: (.+)/\1/') && echo "COMPUTE_IMAGE_NAME=$COMPUTE_IMAGE_NAME" >> "$GITHUB_ENV"
 
       - id: 'secrets'
         uses: 'google-github-actions/get-secretmanager-secrets@v2'
@@ -65,33 +67,37 @@ jobs:
                DATABASE_PASSWORD:projects/217948701680/secrets/DATABASE_PASSWORD/versions/1
                DATABASE_USERNAME:projects/217948701680/secrets/DATABASE_USERNAME/versions/1
 
+      - name: Random string generate
+        id: random-string
+        run: echo "RANDOM_SUFFIX=$(uuidgen | tr -d '-')" >> $GITHUB_ENV
+
       - name: Create Instance Template
         run: |
-          gcloud compute instance-templates create instance-template-1 \
-            --machine-type n2-standard-2 \
-            --instance-template-region=us-east1 \
-            --create-disk=image=projects/csye6225-dev-123/global/images/centos-custom-image-google-1712749482,size=100,type=pd-balanced,auto-delete=yes,boot=true \
-            --network=projects/csye6225-dev-123/global/networks/vpc-network \
-            --subnet=projects/csye6225-dev-123/regions/us-east1/subnetworks/webapp \
+          gcloud compute instance-templates create instance-template-${{env.RANDOM_SUFFIX}} \
+            --machine-type ${{env.MACHINE_TYPE}} \
+            --instance-template-region=${{env.INSTANCE_TEMPLATE_REGION}} \
+            --create-disk=image=${{env.BASE_PATH_IMG}}/${{env.COMPUTE_IMAGE_NAME}},size=${{env.DISK_SIZE}},type=${{env.DISK_TYPE}},auto-delete=yes,boot=true \
+            --network=${{env.VPC_NETWORK_PATH}} \
+            --subnet=${{env.VPC_SUBNETWORK_PATH}} \
             --metadata startup-script="echo 'DATABASE_URL=${{steps.secrets.outputs.DATABASE_URL}}' > .env && echo 'DATABASE_USERNAME=${{steps.secrets.outputs.DATABASE_USERNAME}}' >> .env && echo 'DATABASE_PASSWORD=${{steps.secrets.outputs.DATABASE_PASSWORD}}' >> .env && sudo mv .env /opt/ && sudo chown csye6225:csye6225 /opt/.env && sudo setenforce 0 && sudo systemctl daemon-reload && sudo systemctl restart start-webapp.service" \
-            --service-account=csye6225-packer@csye6225-dev-123.iam.gserviceaccount.com \
+            --service-account=${{secrets.SERVICE_ACCOUNT_EMAIL_PACKER}} \
             --tags=vm-instance
 
       - name: Set Instance Template
         run: | 
           gcloud compute instance-groups managed set-instance-template \
-            projects/csye6225-dev-123/regions/us-east1/instanceGroupManagers/webappserver-igm \
-            --template=projects/csye6225-dev-123/regions/us-east1/instanceTemplates/instance-template-1
+            ${{env.BASE_PATH_IGM}} \
+            --${{env.BASE_PATH_INSTANCE_TEMPLATE}}-${{env.RANDOM_SUFFIX}}
       
       - name: Apply instance template to the managed instance group
         run: |
-          gcloud compute instance-groups managed rolling-action start-update projects/csye6225-dev-123/regions/us-east1/instanceGroupManagers/webappserver-igm \
-            --version=template=projects/csye6225-dev-123/regions/us-east1/instanceTemplates/instance-template-1
+          gcloud compute instance-groups managed rolling-action start-update ${{env.BASE_PATH_IGM}} --type=${{env.ROLLING_ACTION_UPDATE_TYPE}} \
+            --version=template=${{env.BASE_PATH_INSTANCE_TEMPLATE}}-${{env.RANDOM_SUFFIX}}
     
       - name: Verify version target reached
         run: |
-          gcloud compute instance-groups managed wait-until projects/csye6225-dev-123/regions/us-east1/instanceGroupManagers/webappserver-igm --version-target-reached \
+          gcloud compute instance-groups managed wait-until ${{env.BASE_PATH_IGM}} --version-target-reached
     
       - name: Describe instance group
         run: |
-          gcloud compute instance-groups managed describe projects/csye6225-dev-123/regions/us-east1/instanceGroupManagers/webappserver-igm --format=json | jq '.versionTargetReached' \
+          gcloud compute instance-groups managed describe ${{env.BASE_PATH_IGM}}
