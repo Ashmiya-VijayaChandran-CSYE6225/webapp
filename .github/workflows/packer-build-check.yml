@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [ "main" ]
     # types:
-        # - closed
+    #     - closed
 
 jobs:
   jobs1:
@@ -57,17 +57,21 @@ jobs:
 
       - name: Packer Build
         working-directory: ./packer
+        run: "packer build ."
+
+      - name: Getting Image Name
+        working-directory: ./packer
         run: |
-          output=$(packer build .)
-          COMPUTE_IMAGE_NAME=$(echo $output | grep -Eo 'A disk image was created in the .+ project: .+' | sed -E 's/A disk image was created in the .+ project: (.+)/\1/') && echo "COMPUTE_IMAGE_NAME=$COMPUTE_IMAGE_NAME" >> "$GITHUB_ENV"
+          COMPUTE_IMAGE_NAME=$(jq -r '.builds[-1].artifact_id' manifest.json | cut -d ":" -f2) && echo "COMPUTE_IMAGE_NAME=$COMPUTE_IMAGE_NAME" >> "$GITHUB_ENV"
 
       - id: 'secrets'
         uses: 'google-github-actions/get-secretmanager-secrets@v2'
         with:
           secrets: |-
-               DATABASE_URL:projects/217948701680/secrets/DATABASE_URL/versions/1
-               DATABASE_PASSWORD:projects/217948701680/secrets/DATABASE_PASSWORD/versions/1
-               DATABASE_USERNAME:projects/217948701680/secrets/DATABASE_USERNAME/versions/1
+               DATABASE_URL:projects/217948701680/secrets/DATABASE_URL
+               DATABASE_PASSWORD:projects/217948701680/secrets/DATABASE_PASSWORD
+               DATABASE_USERNAME:projects/217948701680/secrets/DATABASE_USERNAME
+               KEY_MANAGMENT_SYSTEM:projects/217948701680/secrets/KEY_MANAGEMENT_SYSTEM_KEY
 
 
       - name: Random string generate
@@ -79,7 +83,7 @@ jobs:
           gcloud compute instance-templates create instance-template-${{env.RANDOM_SUFFIX}} \
             --machine-type ${{vars.MACHINE_TYPE}} \
             --instance-template-region=${{vars.INSTANCE_TEMPLATE_REGION}} \
-            --create-disk=image=${{vars.BASE_PATH_IMG}}/${{env.COMPUTE_IMAGE_NAME}},size=${{vars.DISK_SIZE}},type=${{vars.DISK_TYPE}},auto-delete=yes,boot=true \
+            --create-disk=image=${{vars.BASE_PATH_IMG}}/${{env.COMPUTE_IMAGE_NAME}},size=${{vars.DISK_SIZE}},type=${{vars.DISK_TYPE}},auto-delete=yes,boot=true,kms-key=${{steps.secrets.outputs.KEY_MANAGEMENT_SYSTEM_KEY}} \
             --network=${{vars.VPC_NETWORK_PATH}} \
             --subnet=${{vars.VPC_SUBNETWORK_PATH}} \
             --metadata startup-script="echo 'DATABASE_URL=${{steps.secrets.outputs.DATABASE_URL}}' > .env && echo 'DATABASE_USERNAME=${{steps.secrets.outputs.DATABASE_USERNAME}}' >> .env && echo 'DATABASE_PASSWORD=${{steps.secrets.outputs.DATABASE_PASSWORD}}' >> .env && sudo mv .env /opt/ && sudo chown csye6225:csye6225 /opt/.env && sudo setenforce 0 && sudo systemctl daemon-reload && sudo systemctl restart start-webapp.service" \
