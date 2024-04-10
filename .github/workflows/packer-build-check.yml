@@ -71,7 +71,7 @@ jobs:
                DATABASE_URL:projects/217948701680/secrets/DATABASE_URL
                DATABASE_PASSWORD:projects/217948701680/secrets/DATABASE_PASSWORD
                DATABASE_USERNAME:projects/217948701680/secrets/DATABASE_USERNAME
-               KEY_MANAGMENT_SYSTEM:projects/217948701680/secrets/KEY_MANAGEMENT_SYSTEM_KEY
+               KEY_MANAGEMENT_SYSTEM_KEY:projects/217948701680/secrets/KEY_MANAGEMENT_SYSTEM_KEY
 
 
       - name: Random string generate
