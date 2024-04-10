@@ -90,7 +90,7 @@ jobs:
         run: | 
           gcloud compute instance-groups managed set-instance-template \
             ${{vars.BASE_PATH_IGM}} \
-            --${{vars.BASE_PATH_INSTANCE_TEMPLATE}}-${{env.RANDOM_SUFFIX}}
+            --template=${{vars.BASE_PATH_INSTANCE_TEMPLATE}}-${{env.RANDOM_SUFFIX}}
       
       - name: Apply instance template to the managed instance group
         run: |
