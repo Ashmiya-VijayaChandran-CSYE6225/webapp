@@ -167,7 +167,7 @@ public class UserService {
                 logger.info("User already verified:"+username);
                 return "User already verified";
             }
-            else if(token.equals(requestedUser.getId())){
+            else if(token.equals(requestedUser.getToken())){
                 Instant instantVerificationTime = requestedUser.getEmailVerifyExpiryTime().toInstant();
                 logger.info("instant(now) time: "+Instant.now()+"for user:"+requestedUser.getUsername());
                 logger.info("database time: "+instantVerificationTime);

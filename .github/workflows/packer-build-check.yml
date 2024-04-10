@@ -56,3 +56,42 @@ jobs:
       - name: Packer Build
         working-directory: ./packer
         run: "packer build ."
+
+      - id: 'secrets'
+        uses: 'google-github-actions/get-secretmanager-secrets@v2'
+        with:
+          secrets: |-
+               DATABASE_URL:projects/217948701680/secrets/DATABASE_URL/versions/1
+               DATABASE_PASSWORD:projects/217948701680/secrets/DATABASE_PASSWORD/versions/1
+               DATABASE_USERNAME:projects/217948701680/secrets/DATABASE_USERNAME/versions/1
+
+      - name: Create Instance Template
+        run: |
+          gcloud compute instance-templates create instance-template-1 \
+            --machine-type n2-standard-2 \
+            --instance-template-region=us-east1 \
+            --create-disk=image=projects/csye6225-dev-123/global/images/centos-custom-image-google-1712749482,size=100,type=pd-balanced,auto-delete=yes \
+            --network=projects/csye6225-dev-123/global/networks/vpc-network \
+            --subnet=projects/csye6225-dev-123/regions/us-east1/subnetworks/webapp \
+            --metadata startup-script="echo 'DATABASE_URL=${{steps.secrets.outputs.DATABASE_URL}}' > .env && echo 'DATABASE_USERNAME=${{steps.secrets.outputs.DATABASE_USERNAME}}' >> .env && echo 'DATABASE_PASSWORD=${{steps.secrets.outputs.DATABASE_PASSWORD}}' >> .env && sudo mv .env /opt/ && sudo chown csye6225:csye6225 /opt/.env && sudo setenforce 0 && sudo systemctl daemon-reload && sudo systemctl restart start-webapp.service" \
+            --service-account csye6225-packer@csye6225-dev-123.iam.gserviceaccount.com \
+            --tags=vm-instance
+
+      - name: Set Instance Template
+        run: | 
+          gcloud compute instance-groups managed set-instance-template \
+            projects/csye6225-dev-123/regions/us-east1/instanceGroupManagers/webappserver-igm \
+            --template=projects/csye6225-dev-123/regions/us-east1/instanceTemplates/instance-template-1
+      
+      - name: Apply instance template to the managed instance group
+        run: |
+          gcloud compute instance-groups managed rolling-action start-update projects/csye6225-dev-123/regions/us-east1/instanceGroupManagers/webappserver-igm \
+            --version=template=projects/csye6225-dev-123/regions/us-east1/instanceTemplates/instance-template-1
+    
+      - name: Verify version target reached
+        run: |
+          gcloud compute instance-groups managed wait-until projects/csye6225-dev-123/regions/us-east1/instanceGroupManagers/webappserver-igm --version-target-reached \
+    
+      - name: Describe instance group
+        run: |
+          gcloud compute instance-groups managed describe projects/csye6225-dev-123/regions/us-east1/instanceGroupManagers/webappserver-igm --format=json | jq '.versionTargetReached' \
