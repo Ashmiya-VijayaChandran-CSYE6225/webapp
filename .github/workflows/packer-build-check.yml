@@ -86,7 +86,7 @@ jobs:
             --create-disk=image=${{vars.BASE_PATH_IMG}}/${{env.COMPUTE_IMAGE_NAME}},size=${{vars.DISK_SIZE}},type=${{vars.DISK_TYPE}},auto-delete=yes,boot=true,kms-key=${{steps.secrets.outputs.KEY_MANAGEMENT_SYSTEM_KEY}} \
             --network=${{vars.VPC_NETWORK_PATH}} \
             --subnet=${{vars.VPC_SUBNETWORK_PATH}} \
-            --metadata startup-script="echo 'DATABASE_URL=${{steps.secrets.outputs.DATABASE_URL}}' > .env && echo 'DATABASE_USERNAME=${{steps.secrets.outputs.DATABASE_USERNAME}}' >> .env && echo 'DATABASE_PASSWORD=${{steps.secrets.outputs.DATABASE_PASSWORD}}' >> .env && sudo mv .env /opt/ && sudo chown csye6225:csye6225 /opt/.env && sudo setenforce 0 && sudo systemctl daemon-reload && sudo systemctl restart start-webapp.service" \
+            --metadata startup-script="echo 'DATABASE_URL=${{steps.secrets.outputs.DATABASE_URL}}' > .env && echo 'DATABASE_USERNAME=${{steps.secrets.outputs.DATABASE_USERNAME}}' >> .env && echo 'DATABASE_PASSWORD=${{steps.secrets.outputs.DATABASE_PASSWORD}}' >> .env && echo "GOOGLE_PROJECT_ID=${{env.GOOGLE_PROJECT_ID}}" >> .env && echo "PUB_SUB_TOPIC_ID=${{env.PUB_SUB_TOPIC_ID}}" >> .env && sudo mv .env /opt/ && sudo chown csye6225:csye6225 /opt/.env && sudo setenforce 0 && sudo systemctl daemon-reload && sudo systemctl restart start-webapp.service" \
             --service-account=${{secrets.SERVICE_ACCOUNT_EMAIL_PACKER}} \
             --tags=vm-instance
 
