@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @RestController
-@RequestMapping("v1/user")
+@RequestMapping("v9/user")
 public class UserController {
 
     private final UserService userService;
